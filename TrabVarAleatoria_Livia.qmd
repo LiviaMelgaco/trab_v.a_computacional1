@@ -1,0 +1,269 @@
+---
+title: "Trabalho Variável Aleatória"
+author: "Livia Ribeiro"
+format: 
+  pdf:
+    toc: false
+    number-sections: true
+  html:
+    toc: false
+    number-sections: true
+execute:
+  warning: false
+  message: false
+  error: true
+  echo: true
+
+editor: visual
+---
+
+## Exercício 1
+
+A Lei dos Grandes Números (LGN) é um dos resultados mais importantes na teoria estatística. Tal resultado permite afirmar que a média amostral tende para a média populacional, quando o tamanho da amostra é suficientemente grande. Sugira um programa, em código R, que permita mostrar computacionalmente a LGN para valores pseudo-aleatórios de uma variável aleatória binomial com parâmetros n = 10 e p = 0.1.
+
+```{r}
+library(ggplot2)
+library(ggplot2)
+
+# Parâmetros da distribuição
+n <- 10
+p <- 0.1
+media_teorica <- n * p
+
+# Número de simulações
+N <- 10000
+
+# Gera valores pseudo-aleatórios binomiais
+set.seed(123)  # para reprodutibilidade
+dados <- rbinom(N, size = n, prob = p) 
+
+# Calcula média acumulada
+media_acumulada <- cumsum(dados) / (1:N) # soma dos valores das médias acumuladas até N
+
+# Plota a convergência
+plot(1:N, media_acumulada, type = "l", col = "blue",
+     xlab = "Tamanho da amostra", ylab = "Média amostral",
+     main = "Gráfico das Médias comprovando o LGM - Binomial(10, 0.1)")
+abline(h = media_teorica, col = "red", lwd = 2, lty = 2)
+
+legend("topright", legend = c("Média amostral", "Média teórica"),
+       col = c("blue", "red"), lty = c(1, 2), bty = "n")
+
+
+```
+
+## Exercício 2
+
+Seja $X$ uma variável aleatória em um espaço de probabilidade $(Ω, A, P)$ e suponha que $X ∼ U(0, 1)$. Obtenha a distribuição de $Y = − ln(X)$.
+
+• Faça uma análise descritiva.
+
+• Qual a distribuição de $Y$ ? Veja de forma simulada e na forma teórica.
+
+• Com base na distribuição da variável aleatória (v.a.) $Y$ do exercício acima, implemente uma função em R que gere observações de Y.
+
+```{r}
+install.packages("summarytools")
+library(summarytools)
+
+# Gerando X ~ U(0, 1)
+n1 <- 10000
+X1 <- runif(n1, min = 0, max = 1)
+
+# Transformação Y = -ln(X)
+Y <- -log(X1) # y TEM DIST EXPONENCIAL(1)
+
+
+## ANALISE DESCRITIVA
+descr(Y)
+
+hist(Y, probability = TRUE, main = "Histograma de Y com densidade teórica",
+     col = "lightblue", border = "white", breaks = 50)
+
+```
+
+Observando o gráfico e analisando os dados descritivos da função `dscr()` do pacote `summarytools`, podemos concluir que $Y ~ Exponencial(1)$.
+
+```{r}
+## COMPARAÇÃO SIMULADA VS TEORICA
+# Média e variância simuladas
+mean(Y)
+var(Y)
+
+# Valores teóricos
+media_teorica <- 1
+variancia_teorica <- 1
+c(media_teorica, variancia_teorica)
+
+cat("média e variãncia simuladas:", mean(Y), "e", var(Y), "\n",
+    "média e variãncia teóricas:", media_teorica, "e", variancia_teorica)
+```
+
+```{r}
+## FUNÇÃO PRA GERAR Y
+gera_Y <- function(n1) {
+  X1 <- runif(n1)
+  Y <- -log(X1)
+  return(Y)
+}
+
+# Exemplo de uso da função
+amostra_Y <- gera_Y(5)
+cat(amostra_Y)
+```
+
+## Exercício 3
+
+Gere $X1, X2, . . . , Xn$ variáveis aleatórias, $n = 10, 30, 500, 10000$, das distribuições a seguir:
+
+• $Binomial(n, 0.6)$
+
+• $Poisson(3)$
+
+• $χ^2(6)$
+
+• $F(5, 3)$
+
+Diante disso:
+
+\[i.\] Considere o TCL, ou seja, pegue as variáveis acima e verifique, com o qqplot(qqnorm) se de fato as variáveis acima convergem para a normal. Se sim, diga para qual normal(parâmetros) ocorre a convergência. Para responder sobre a convergência utilize apenas n = 10000 e diga se coincide com a teoria.
+
+\[ii.\] Aplique um teste de ajuste (aderência) e conclua sobre o que afirma no item anterior.
+
+### Gerando as variáveis aleatórias e verificando se convergem com normal
+
+```{r}
+set.seed(123)  
+n <- 10000
+
+# Gerar amostras das distribuições
+x_binomial <- rbinom(n, size = 10, prob = 0.6)
+x_poisson <- rpois(n, lambda = 3)
+x_qquad <- rchisq(n, df = 6)
+x_f <- rf(n, df1 = 5, df2 = 3)
+
+
+# Deve ser feita uma padronização dos dados brutos pois quando comparamos por qqplot, 
+# estamos comparando com uma normal 0,1
+
+# Padronização: (X - média) / desvio padrão
+padronizacao <- function(x) {
+  return((x - mean(x)) / sd(x))
+}
+
+x_binomial_std <- padronizacao(x_binomial)
+x_poisson_std <- padronizacao(x_poisson)
+x_qquad_std <- padronizacao(x_qquad)
+x_f_std <- padronizacao(x_f)
+
+# Plotando os QQplots
+par(mfrow = c(2, 2))  # Painel 2x2
+qqnorm(x_binomial_std, main = "Binomial(10, 0.6)")
+qqline(x_binomial_std, col = "red")
+
+qqnorm(x_poisson_std, main = "Poisson(3)")
+qqline(x_poisson_std, col = "red")
+
+qqnorm(x_qquad_std, main = "Qui-quadrado(6)")
+qqline(x_qquad_std, col = "red")
+
+qqnorm(x_f_std, main = "F(5, 3)")
+qqline(x_f_std, col = "red")
+
+```
+
+A **binomial** com $n=10$ já é relativamente simétrica, e com $n=10000$, o QQPlot mostra uma boa aproximação à normal. A convergência teórica seria para uma normal com média $n * p = 6$ e variância $n * p * (1 - p) = 2.4$.
+
+A distribuição de **Poisson** é assimétrica, mas com $n=10000$, ela também converge bem para a normal. Teoricamente, a $média$ é $3$ e a $variância$ também é $3$.
+
+A **Qui-Quadrada** demonstra grande assimetria à direita. O QQPlot mostra aproximação razoável, mas com caudas pesadas à direita — esperado pela assimetria da distribuição original. $Média$ $teorica: 6, variância: 12$.
+
+Extremamente assimétrica à direita, o QQPlot da distribuição **F** mostra que a convergência é lenta, com desvios maiores nas caudas. Essa distribuição é conhecida por ter caudas pesadas, então a normalidade não é muito evidente mesmo com $n = 10000$.
+
+### Distribuição com outros "n's" e Teste de aderência
+
+```{r}
+# Função para gerar médias padronizadas
+gerar_medias_padronizadas <- function(dist, n, k = 1000) {
+  medias <- numeric(k)
+  
+  for (i in 1:k) {
+    if (dist == "binomial") {
+      amostra <- rbinom(n, size = 10, prob = 0.6)
+    } else if (dist == "poisson") {
+      amostra <- rpois(n, lambda = 3)
+    } else if (dist == "chisq") {
+      amostra <- rchisq(n, df = 6)
+    } else if (dist == "f") {
+      amostra <- rf(n, df1 = 5, df2 = 3)
+    }
+    medias[i] <- mean(amostra)
+  }
+  
+  # Padroniza as médias
+  medias_padronizadas <- (medias - mean(medias)) / sd(medias)
+  return(medias_padronizadas)
+}
+
+# Vetor de tamanhos de amostras
+ns <- c(10, 30, 500)
+
+# Distribuições a analisar
+dists <- c("binomial", "poisson", "chisq", "f")
+
+# Criar gráficos
+
+
+for (n in ns) {
+  for (dist in dists) {
+    dados <- gerar_medias_padronizadas(dist, n)
+    qqnorm(dados, main = paste0("QQPlot - ", dist, "\nn=", n), cex.main=0.8)
+    qqline(dados, col = "red")
+  }
+}
+
+```
+
+| Distribuição | `n = 10` | `n = 30` | `n = 500` | `n = 10000` |
+|---------------|---------------|---------------|---------------|---------------|
+| **Binomial** | Leve curvatura | Melhor aproximação | Muito próxima | Praticamente Normal |
+| **Poisson** | Assimetria presente | Já melhora | Quase Normal | Muito boa aproximação |
+| **χ ² (6)** | Assimétrica, não Normal | Ainda distorcida | Aproxima, mas lenta | Aproxima com caudas |
+| **F(5,3)** | Muito assimétrica | Continua distorcida | Ainda não é Normal | Lentamente se aproxima |
+
+O TCL afirma que a distribuição das médias tende à normal, não os dados brutos.
+
+Com amostras pequenas (n = 10), apenas distribuições simétricas (como a binomial) mostram alguma semelhança com a normal.
+
+Com n = 30, o padrão já melhora para várias distribuições.
+
+A partir de n = 500, a maioria já está bastante próxima de uma normal padrão (N(0,1)), mesmo que a distribuição original fosse assimétrica.
+
+Para distribuições com caudas pesadas (como F), mesmo com n = 10000 a convergência é mais lenta.
+
+```{r}
+install.packages("nortest")
+library(nortest)
+
+
+# Aplicando o teste de Anderson-Darling
+ad_binomial <- ad.test(x_binomial_std)
+ad_poisson <- ad.test(x_poisson_std)
+ad_qquad <- ad.test(x_qquad_std)
+ad_f <- ad.test(x_f_std)
+
+
+# Exibindo resultados
+pv_binomial <- unlist(ad_binomial[2])
+pv_poisson <- unlist(ad_poisson[2])
+pv_qquad <- unlist(ad_qquad[2])
+pv_f <- unlist(ad_f[2])
+
+cat("p-valores:","\n",
+    "Binomial:", pv_binomial, "\n",
+    "Poisson:", pv_poisson, "\n",
+    "Qui-Quadrada", pv_qquad, "\n",
+    "F:", pv_f)
+```
+
+Apesar das saídas serem "iguais", os p-valores não são. Isso aconteceu porque os p-valores receberam um número extremamente baixo, chegando no limite computacional da função. A partir disso, vemos que apesar dos QQPlots apresentarem similaridade com a normal em amostras grandes, como n = 10000, ainda assim pequenas divergências da normalidade são detectadas pelos testes. Ou seja, eles se tornam muito sensíveis.
