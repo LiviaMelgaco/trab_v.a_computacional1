@@ -1,4 +1,7 @@
 Trabalho sobre Variáveis Aleatórias 
-**Quarto**
-Feito no 2025/1 para **Computacional I**
+
+Feito no **Quarto** em 2025/1 para **Computacional I**
+
 meia boca pq precisava entregar rápido
+
+São três questões.
